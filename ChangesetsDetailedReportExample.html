@@ -1,0 +1,84 @@
+<html>
+  <head>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+      google.charts.load('current', {'packages':['bar']});
+      google.charts.setOnLoadCallback(drawStuff);
+
+      function drawStuff() {
+        var data = new google.visualization.arrayToDataTable([
+         ['Move', 'Percentage'],
+          ["00:00", 0],
+          ["00:30", 0],
+          ["01:00", 0],
+          ["01:30", 0],
+          ["02:00", 0],
+          ["02:30", 0],
+          ["03:00", 0],
+          ["03:30", 0],
+          ["04:00", 0],
+          ["04:30", 0],
+          ["05:00", 0],
+          ["05:30", 0],
+          ["06:00", 0],
+          ["06:30", 0],
+          ["07:00", 0],
+          ["07:30", 2],
+          ["08:00", 2],
+          ["08:30", 0],
+          ["09:00", 0],
+          ["09:30", 0],
+          ["10:00", 1],
+          ["10:30", 0],
+          ["11:00", 2],
+          ["11:30", 5],
+          ["12:00", 2],
+          ["12:30", 1],
+          ["13:00", 1],
+          ["13:30", 0],
+          ["14:00", 2],
+          ["14:30", 2],
+          ["15:00", 5],
+          ["15:30", 0],
+          ["16:00", 0],
+          ["16:30", 0],
+          ["17:00", 0],
+          ["17:30", 0],
+          ["18:00", 0],
+          ["18:30", 0],
+          ["19:00", 0],
+          ["19:30", 0],
+          ["20:00", 0],
+          ["20:30", 0],
+          ["21:00", 0],
+          ["21:30", 0],
+          ["22:00", 0],
+          ["22:30", 0],
+          ["23:00", 0],
+          ["23:30", 0]
+        ]);
+
+        var options = {
+          width: 1800,
+          legend: { position: 'none' },
+          chart: {
+            title: 'TFS Changesets per Hour',
+            subtitle: '$/TeamProject/Dev \n 06/01/2017 - 06/09/2017' },
+          axes: {
+            x: {
+              0: { side: 'bottom', label: 'Total Changesets: 25'} // Top x-axis.
+            }
+          },
+          bar: { groupWidth: "90%" }
+        };
+
+        var chart = new google.charts.Bar(document.getElementById('top_x_div'));
+        // Convert the Classic options to Material options.
+        chart.draw(data, google.charts.Bar.convertOptions(options));
+      };
+    </script>
+  </head>
+  <body>
+    <div id="top_x_div" style="width: 800px; height: 600px;"></div>
+  </body>
+</html>
