@@ -26,7 +26,7 @@ Powershell script to generate a TFS changesets report
  - Date and time (optional) of the earliest changeset to return
  - Example: "6/7/2017"
 #### EndDate
- - Date and time of the latest changesets to return
+ - Date and time (optional) of the latest changesets to return
  - Example: "6/8/2017 11:59:59 PM"
 #### Path
  - Path in source control (directory or file)
