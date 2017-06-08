@@ -69,8 +69,8 @@ Powershell script to generate a TFS changesets report
  
 ## Changeset Report
 
- - Basic Report Example: [ChangesetsReportExample](ChangesetsReportExample.html)
- - Detailed Report Example: [ChangesetsDetailedReportExample](ChangesetsDetailedReportExample.html)
+ - Basic Report Example: [ChangesetsReportExample](https://leonjalfon1.github.io/TFSChangesetsReportGenerator/ChangesetsReportExample.html)
+ - Detailed Report Example: [ChangesetsDetailedReportExample](https://leonjalfon1.github.io/TFSChangesetsReportGenerator/ChangesetsDetailedReportExample.html)
  
 ---
 
