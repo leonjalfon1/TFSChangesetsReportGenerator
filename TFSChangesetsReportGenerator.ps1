@@ -15,8 +15,13 @@
     [Parameter(Mandatory=$false)]
     $File = [Environment]::GetFolderPath("Desktop") + "\ChangesetsReport_" + (Get-Date).ToString('ddMMyyhhmmss') + ".html",
     [Parameter(Mandatory=$false)]
-    $Detailed = $false
+    $Detailed = $false,
+    [Parameter(Mandatory=$false)]
+    $TFPath = $null
 )
+
+
+
 
 ########################################################################################################################
 # METHODS
@@ -43,12 +48,12 @@ function Cast-Date
     catch
     {
         Write-Output "Invalid Date, Exception: $_.Exception.Message"
-        Exit 101
+        #Exit 101
     }
 }
 
 
-# Get BuidDefinitionId using BuildDefinitionName
+# Get Changesets between two dates
 function Get-ChangesetsByDates
 {
     param
@@ -104,7 +109,79 @@ function Get-ChangesetsByDates
     catch
     {
         Write-Host "Failed to get changesets, Exception: $_.Exception.Message"
-        Exit 102
+        #Exit 102
+    }
+}
+
+
+# Get-Changesets between two dates using TF
+function Get-ChangesetsByDatesWithTF
+{
+    param
+    (
+        [Parameter(Mandatory=$true)]
+        $StartDate,
+        [Parameter(Mandatory=$true)]
+        $EndDate,
+        [Parameter(Mandatory=$true)]
+        $Path,
+        [Parameter(Mandatory=$true)]
+        $File,
+        [Parameter(Mandatory=$true)]
+        $CollectionUri,
+        [Parameter(Mandatory=$true)]
+        $TeamProject,
+        [Parameter(Mandatory=$true)]
+        $Credentials
+    )
+
+    $Page = 0
+    
+    try
+    {
+        $TempFile = $File.Substring(0,$File.Length-5)+"_temp.txt"
+        if(Test-Path $TempFile) {Remove-Item $TempFile}
+
+        $TFPath = "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\IDE"
+        $Command = "history"
+        $NoPrompt = "/noprompt"
+        $Recursive = "/recursive"
+        $CollectionUrl = "/collection:" + $CollectionUrl
+        $Path = '"' + $Path + '"'
+        $Period = "/v:D" + $StartDate + "~D" + $EndDate
+
+        $currentLocation = (Get-Item -Path ".\" -Verbose).FullName
+        cd $TFPath
+        $Results = .\tf.exe $Command $Path $NoPrompt $Recursive $Period $CollectionUrl
+        
+        # Count total results (total lines - title (2 lines))
+        $TotalResults = $Results.Count-2
+        cd $currentLocation
+
+        Write-Host "$TotalResults changesets found"
+
+        $Flag = 0
+        foreach($Result in $Results)
+        {
+            if($Flag -gt 1)
+            {
+                Write-Host $Result.Split(" ")[0]
+                Add-Content $TempFile $Result.Split(" ")[0] | out-null
+            }
+            else
+            {
+                $Flag++
+            }
+            
+        }
+
+        return $TempFile
+
+    }
+    catch
+    {
+        Write-Host "Failed to get changesets, Exception: $_.Exception.Message"
+        #Exit 102
     }
 }
 
@@ -135,7 +212,7 @@ function Get-ChangesetInfo
     catch
     {
         Write-Output "Failed to get the ChangesetInfo, Exception: $_.Exception.Message"
-        Exit 103
+        #Exit 103
     }
 }
 
@@ -172,7 +249,7 @@ function Create-DetailedReport
         Add-Content $File ''
         Add-Content $File '      function drawStuff() {'
         Add-Content $File '        var data = new google.visualization.arrayToDataTable(['
-        Add-Content $File "         ['Move', 'Percentage'],"
+        Add-Content $File "         ['Move', 'Changesets'],"
         $Line = '          ["00:00", ' + $Data[0] + '],'
         Add-Content $File $Line
         $Line = '          ["00:30", ' + $Data[1] + '],'
@@ -301,7 +378,7 @@ function Create-DetailedReport
     catch
     {
         Write-Output "Failed creating the report, Exception: $_.Exception.Message"
-        Exit 104
+        #Exit 104
     }
 }
 
@@ -338,7 +415,7 @@ function Create-Report
         Add-Content $File ''
         Add-Content $File '      function drawStuff() {'
         Add-Content $File '        var data = new google.visualization.arrayToDataTable(['
-        Add-Content $File "         ['Move', 'Percentage'],"
+        Add-Content $File "         ['Move', 'Changesets'],"
         
         [int]$Total = $Data[0] + $Data[1]
         $Line = '          ["00:00", ' + $Total + '],'
@@ -468,7 +545,7 @@ function Create-Report
     catch
     {
         Write-Output "Failed creating the report, Exception: $_.Exception.Message"
-        Exit 105
+        #Exit 105
     }
 }
 
@@ -480,16 +557,35 @@ function Create-Report
 # Cast dates to TFS format
 $OriginalStartDate = $StartDate
 $OriginalEndDate = $EndDate
-$StartDate = Cast-Date -Date $StartDate
-$EndDate = Cast-Date -Date $EndDate
+
+
+if($TFPath -eq $null)
+{
+    $StartDate = Cast-Date -Date $StartDate
+    $EndDate = Cast-Date -Date $EndDate
+}
+else
+{
+    $StartDate = $StartDate.Replace("/","-")
+    $EndDate = $EndDate.Replace("/","-")
+}
 
 # Define variables
 $count = 1
 $FinalTable = 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 
 # Get changesets
-$ChangesetsFile = Get-ChangesetsByDates -StartDate $StartDate -EndDate $EndDate -Path $Path -File $File -CollectionUri $CollectionUrl -TeamProject $TeamProject -Credentials $Credentials
+if($TFPath -eq $null)
+{
+    $ChangesetsFile = Get-ChangesetsByDates -StartDate $StartDate -EndDate $EndDate -Path $Path -File $File -CollectionUri $CollectionUrl -TeamProject $TeamProject -Credentials $Credentials
+}
+else
+{
+    $ChangesetsFile = Get-ChangesetsByDatesWithTF -StartDate $StartDate -EndDate $EndDate -Path $Path -File $File -CollectionUri $CollectionUrl -TeamProject $TeamProject -Credentials $Credentials
+}
+
 $Changesets = Get-Content $ChangesetsFile
+
 
 # Build array with statistics
 foreach($ChangesetId in $Changesets)
